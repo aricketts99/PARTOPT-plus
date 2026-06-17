@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# build / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# environments
+.venv/
+env/
+ENV/
+
+# conda (optional local env files)
+*.conda
+
+# testing / tooling
+.pytest_cache/
+.mypy_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+
+# R (since you're using reticulate)
+.Rhistory
+.RData
+.Rproj.user/
+
+# IDEs
+.vscode/
+.idea/

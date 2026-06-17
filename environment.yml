@@ -1,0 +1,16 @@
+name: geo_work
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - geopandas
+  - statsmodels
+  - autograd
+  - jupyter
+  - seaborn
+  - jax
+  - fiona
+  - pyogrio
+  - gdal
+  - tqdm
+prefix: /Users/andrew/miniforge3/envs/geo_work
