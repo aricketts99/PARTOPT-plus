@@ -10,13 +10,12 @@ Created on Thu Jul 25 18:14:43 2024
 import time
 import numpy as np
 import networkx as nx
-from numpy.linalg import slogdet, cond
+from numpy.linalg import slogdet
 from scipy.linalg import block_diag, inv,det
-from scipy import linalg,integrate
+from scipy import linalg
 from scipy.stats import multivariate_normal
 import scipy.special as sc
-from connected_Particle import connected_Particle
-from Particle import pinvh
+from partopt_plus.connected_Particle import connected_Particle
 
 
 class Particle_MCAR(connected_Particle):

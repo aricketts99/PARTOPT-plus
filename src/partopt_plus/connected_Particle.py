@@ -9,7 +9,7 @@ Created on Fri Aug  2 12:39:10 2024
 import math
 import numpy as np
 import networkx as nx
-from Particle import Particle
+from partopt_plus.Particle import Particle
 from sklearn.cluster import AgglomerativeClustering, SpectralClustering
 
 
