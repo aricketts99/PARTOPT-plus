@@ -536,199 +536,199 @@ class Partition_Searcher():
             objective = self.max_finder(index, particle, pairwise_assignment_hashes, objective)
         return
     
-    def prop_to_optimise(self,temp=False,zeal=False):
-        pair_1 = self.pair_wise_ass_2(self.actual_assignment)
-        self.pair_wise_1 = pair_1
-        if temp:
-            objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,0)
-        else:
-            objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
+    # def prop_to_optimise(self,temp=False,zeal=False):
+    #     pair_1 = self.pair_wise_ass_2(self.actual_assignment)
+    #     self.pair_wise_1 = pair_1
+    #     if temp:
+    #         objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,0)
+    #     else:
+    #         objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
         
-        previous_objective = objective-1
+    #     previous_objective = objective-1
         
-        iter_count = 0
+    #     iter_count = 0
         
-        for index, particle in enumerate(self.Particle_set):
-            self.moves_accepted[index].append(particle.assignment)
-            self.moves_accepted_key[index].append("start")
+    #     for index, particle in enumerate(self.Particle_set):
+    #         self.moves_accepted[index].append(particle.assignment)
+    #         self.moves_accepted_key[index].append("start")
             
-            pair_2 = self.pair_wise_ass_2(particle.assignment)
+    #         pair_2 = self.pair_wise_ass_2(particle.assignment)
             
-            self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
+    #         self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
         
-        while iter_count < 150:
-            iter_count += 1
-            previous_objective = objective
-            self.potentials = []
+    #     while iter_count < 150:
+    #         iter_count += 1
+    #         previous_objective = objective
+    #         self.potentials = []
             
-            #Loop over particle set
-            for index, particle in enumerate(self.Particle_set):
-                self.potentials = []
-                #For each particle generate a hash
-                hash_key = tuple(self.pair_wise_ass_2(particle.assignment))
+    #         #Loop over particle set
+    #         for index, particle in enumerate(self.Particle_set):
+    #             self.potentials = []
+    #             #For each particle generate a hash
+    #             hash_key = tuple(self.pair_wise_ass_2(particle.assignment))
                 
-                if zeal == True:
-                    self.zelous_moves(particle)
-                self.local_moves(particle)
-                self.global_moves(particle)
+    #             if zeal == True:
+    #                 self.zelous_moves(particle)
+    #             self.local_moves(particle)
+    #             self.global_moves(particle)
                 
                 
-                assert len(self.potentials) > 0, "Proposals is empty, critical failure."
+    #             assert len(self.potentials) > 0, "Proposals is empty, critical failure."
                 
-                pairwise_assignment_hashes = [tuple(self.pair_wise_ass_2(p[0])) for p in self.potentials]
-                for i in pairwise_assignment_hashes:
-                    if i in self.visited.keys():
-                        self.visited[i] += 1
-                    else:
-                        self.visited[i] = 1
+    #             pairwise_assignment_hashes = [tuple(self.pair_wise_ass_2(p[0])) for p in self.potentials]
+    #             for i in pairwise_assignment_hashes:
+    #                 if i in self.visited.keys():
+    #                     self.visited[i] += 1
+    #                 else:
+    #                     self.visited[i] = 1
                 
-                self.potentials = [p for i,p in enumerate(self.potentials) if pairwise_assignment_hashes[i] != hash_key]
+    #             self.potentials = [p for i,p in enumerate(self.potentials) if pairwise_assignment_hashes[i] != hash_key]
                     
-                objective = self.prop_to_finder(index,particle,pairwise_assignment_hashes,objective,iter_count) 
-        self.iter_count = iter_count
-        self.last_islands(index,particle,objective)
-        return
+    #             objective = self.prop_to_finder(index,particle,pairwise_assignment_hashes,objective,iter_count) 
+    #     self.iter_count = iter_count
+    #     self.last_islands(index,particle,objective)
+    #     return
     
-    def prop_to_finder(self,index,particle,pairwise_assignment_hashes,objective,iter_count):
-        objectives = []
-        for i,p in enumerate(self.potentials):
-            objectives.append((p[0],self.potential_check(i,p[0],pairwise_assignment_hashes,index,particle,-1)))
+    # def prop_to_finder(self,index,particle,pairwise_assignment_hashes,objective,iter_count):
+    #     objectives = []
+    #     for i,p in enumerate(self.potentials):
+    #         objectives.append((p[0],self.potential_check(i,p[0],pairwise_assignment_hashes,index,particle,-1)))
         
-        annealing_schedule = np.logspace(100,0,num=75)
-        if iter_count>74:
-            iter_count = -1
+    #     annealing_schedule = np.logspace(100,0,num=75)
+    #     if iter_count>74:
+    #         iter_count = -1
         
-        #objectives = [(o[0],1) if  o[1] > objective else (o[0],np.exp((o[1]-objective))/annealing_schedule[iter_count]) for o in objectives]
-        objectives = [(o[0],o[1]/annealing_schedule[iter_count]) for o in objectives]
+    #     #objectives = [(o[0],1) if  o[1] > objective else (o[0],np.exp((o[1]-objective))/annealing_schedule[iter_count]) for o in objectives]
+    #     objectives = [(o[0],o[1]/annealing_schedule[iter_count]) for o in objectives]
         
-        if len(objectives) == 0:
-            return objective
-        else:
-            probs = np.array([o[1] for o in objectives])
-            norm = sum(probs)
-            probs = [p/norm for p in probs]
-            index_of_max = np.random.choice(len(objectives), 1, p=probs)[0]
-            max_potential = objectives[index_of_max][0]
+    #     if len(objectives) == 0:
+    #         return objective
+    #     else:
+    #         probs = np.array([o[1] for o in objectives])
+    #         norm = sum(probs)
+    #         probs = [p/norm for p in probs]
+    #         index_of_max = np.random.choice(len(objectives), 1, p=probs)[0]
+    #         max_potential = objectives[index_of_max][0]
 
-        # #After finding the max potenetial check if it actually improves on the objective
+    #     # #After finding the max potenetial check if it actually improves on the objective
 
-            self.moves_accepted[index].append(str(self.potentials[index_of_max][0]))
-            self.moves_accepted_key[index].append(str(self.potentials[index_of_max][1]))
+    #         self.moves_accepted[index].append(str(self.potentials[index_of_max][0]))
+    #         self.moves_accepted_key[index].append(str(self.potentials[index_of_max][1]))
             
-            pair_2 = self.pair_wise_ass_2(max_potential)
+    #         pair_2 = self.pair_wise_ass_2(max_potential)
             
-            self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
-            self.Particle_set[index] = Particle(max_potential,self.Y,self.X,self.W,k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
-            self.Particle_set[index].calculate_likelihood_given_clustering(list(range(self.Particle_set[index].K)),[0],self.lambda_)
-            self.Particle_set[index].point_estimate_theta_and_theta_k()
-            self.Particle_set[index].pairwise_assignment()
+    #         self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
+    #         self.Particle_set[index] = Particle(max_potential,self.Y,self.X,self.W,k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+    #         self.Particle_set[index].calculate_likelihood_given_clustering(list(range(self.Particle_set[index].K)),[0],self.lambda_)
+    #         self.Particle_set[index].point_estimate_theta_and_theta_k()
+    #         self.Particle_set[index].pairwise_assignment()
             
 
-            self.w = self.update_weights(self.Particle_set)
+    #         self.w = self.update_weights(self.Particle_set)
             
-            objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
+    #         objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
 
-        return objective
+    #     return objective
     
-    def simulated_annealing(self,zeal=False):
-        pair_1 = self.pair_wise_ass_2(self.actual_assignment)
-        self.pair_wise_1 = pair_1
-        objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
+    # def simulated_annealing(self,zeal=False):
+    #     pair_1 = self.pair_wise_ass_2(self.actual_assignment)
+    #     self.pair_wise_1 = pair_1
+    #     objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
         
-        previous_objective = 0
+    #     previous_objective = 0
         
-        iter_count = 0
+    #     iter_count = 0
             
         
-        for index, particle in enumerate(self.Particle_set):
-            self.moves_accepted[index].append(particle.assignment)
-            self.moves_accepted_key[index].append("start")
+    #     for index, particle in enumerate(self.Particle_set):
+    #         self.moves_accepted[index].append(particle.assignment)
+    #         self.moves_accepted_key[index].append("start")
             
-            pair_2 = self.pair_wise_ass_2(particle.assignment)
+    #         pair_2 = self.pair_wise_ass_2(particle.assignment)
             
-            self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
+    #         self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
         
 
-        while iter_count < 100 or previous_objective!=objective:
-            print('Iter Count: '+str(iter_count))
-            iter_count += 1
-            previous_objective = objective
+    #     while iter_count < 100 or previous_objective!=objective:
+    #         print('Iter Count: '+str(iter_count))
+    #         iter_count += 1
+    #         previous_objective = objective
             
             
-            #Loop over particle set
-            for index, particle in enumerate(self.Particle_set):
-                self.potentials = []
-                #For each particle generate a hash
-                hash_key = tuple(self.pair_wise_ass_2(particle.assignment))
+    #         #Loop over particle set
+    #         for index, particle in enumerate(self.Particle_set):
+    #             self.potentials = []
+    #             #For each particle generate a hash
+    #             hash_key = tuple(self.pair_wise_ass_2(particle.assignment))
 
-                self.local_moves(particle)
-                if iter_count>75:
-                    if zeal==True:
+    #             self.local_moves(particle)
+    #             if iter_count>75:
+    #                 if zeal==True:
                         
-                        self.zelous_moves(particle)
-                    self.global_moves(particle)
+    #                     self.zelous_moves(particle)
+    #                 self.global_moves(particle)
 
                 
-                assert len(self.potentials) > 0, "Proposals is empty, critical failure."
+    #             assert len(self.potentials) > 0, "Proposals is empty, critical failure."
                 
-                if iter_count <= 75:
+    #             if iter_count <= 75:
                     
-                    self.potentials = [self.potentials[np.random.choice(len(self.potentials),1)[0]]]
+    #                 self.potentials = [self.potentials[np.random.choice(len(self.potentials),1)[0]]]
     
-                    for i in [tuple(self.pair_wise_ass_2(self.potentials[0][0]))]:
-                        if i in self.visited.keys():
-                            self.visited[i] += 1
-                        else:
-                            self.visited[i] = 1
+    #                 for i in [tuple(self.pair_wise_ass_2(self.potentials[0][0]))]:
+    #                     if i in self.visited.keys():
+    #                         self.visited[i] += 1
+    #                     else:
+    #                         self.visited[i] = 1
                     
                     
-                    objective = self.simulated_M_H(objective, [tuple(self.pair_wise_ass_2(self.potentials[0][0]))], index, particle, iter_count)
-                else:
-                    pairwise_assignment_hashes = [tuple(self.pair_wise_ass_2(p[0])) for p in self.potentials]
+    #                 objective = self.simulated_M_H(objective, [tuple(self.pair_wise_ass_2(self.potentials[0][0]))], index, particle, iter_count)
+    #             else:
+    #                 pairwise_assignment_hashes = [tuple(self.pair_wise_ass_2(p[0])) for p in self.potentials]
 
-                    for i in pairwise_assignment_hashes:
-                        if i in self.visited.keys():
-                            self.visited[i] += 1
-                        else:
-                            self.visited[i] = 1
+    #                 for i in pairwise_assignment_hashes:
+    #                     if i in self.visited.keys():
+    #                         self.visited[i] += 1
+    #                     else:
+    #                         self.visited[i] = 1
                     
-                    self.potentials = [p for i,p in enumerate(self.potentials) if pairwise_assignment_hashes[i] != hash_key]
+    #                 self.potentials = [p for i,p in enumerate(self.potentials) if pairwise_assignment_hashes[i] != hash_key]
                     
-                    objective = self.max_finder(index,particle,pairwise_assignment_hashes,objective)
+    #                 objective = self.max_finder(index,particle,pairwise_assignment_hashes,objective)
                     
                 
-        self.iter_count = iter_count
-        self.last_islands(index,particle,objective)
-        return
+    #     self.iter_count = iter_count
+    #     self.last_islands(index,particle,objective)
+    #     return
     
-    def simulated_M_H(self,objective,pairwise_assignment_hashes,index,particle,iter_count):
-        objectives = []
-        for i,p in enumerate(self.potentials):
-            objectives.append((p[0],self.potential_check(i,p[0],pairwise_assignment_hashes,index,particle,-1)))
+    # def simulated_M_H(self,objective,pairwise_assignment_hashes,index,particle,iter_count):
+    #     objectives = []
+    #     for i,p in enumerate(self.potentials):
+    #         objectives.append((p[0],self.potential_check(i,p[0],pairwise_assignment_hashes,index,particle,-1)))
         
-        annealing_schedule = np.logspace(1,0,num=75)
-        if iter_count>74:
-            iter_count = -1
-        if objectives[0][1] > objective:
-            v = 1
-        else:
-            v = np.exp((objectives[0][1]-objective)/annealing_schedule[iter_count])
-        if v >= np.random.uniform(0,1,1):
-            self.moves_accepted[index].append(str(self.potentials[0][0]))
-            self.moves_accepted_key[index].append(str(self.potentials[0][1]))
+    #     annealing_schedule = np.logspace(1,0,num=75)
+    #     if iter_count>74:
+    #         iter_count = -1
+    #     if objectives[0][1] > objective:
+    #         v = 1
+    #     else:
+    #         v = np.exp((objectives[0][1]-objective)/annealing_schedule[iter_count])
+    #     if v >= np.random.uniform(0,1,1):
+    #         self.moves_accepted[index].append(str(self.potentials[0][0]))
+    #         self.moves_accepted_key[index].append(str(self.potentials[0][1]))
             
-            pair_2 = self.pair_wise_ass_2(self.potentials[0][0])
+    #         pair_2 = self.pair_wise_ass_2(self.potentials[0][0])
             
-            self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
-            self.Particle_set[index] = Particle(self.potentials[0][0],self.Y,self.X,self.W,k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
-            self.Particle_set[index].calculate_likelihood_given_clustering(list(range(self.Particle_set[index].K)),[0],self.lambda_)
-            self.Particle_set[index].point_estimate_theta_and_theta_k()
-            self.Particle_set[index].pairwise_assignment()
+    #         self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
+    #         self.Particle_set[index] = Particle(self.potentials[0][0],self.Y,self.X,self.W,k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+    #         self.Particle_set[index].calculate_likelihood_given_clustering(list(range(self.Particle_set[index].K)),[0],self.lambda_)
+    #         self.Particle_set[index].point_estimate_theta_and_theta_k()
+    #         self.Particle_set[index].pairwise_assignment()
             
-            self.w = self.update_weights(self.Particle_set)
+    #         self.w = self.update_weights(self.Particle_set)
             
-            objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
-        return objective
+    #         objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
+    #     return objective
     
     def zelous_moves(self,particle,cluster):
         with open("intermediate.csv", "a") as fp:

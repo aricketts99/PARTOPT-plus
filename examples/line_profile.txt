@@ -1,0 +1,453 @@
+Timer unit: 1e-09 s
+
+Total time: 102.027 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Partition_Searcher.py
+Function: Partition_Searcher.optimise_PARTOPT at line 222
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   222                                               def optimise_PARTOPT(self,temp=False,zeal=False,global_m = False):
+   223         1     288000.0 288000.0      0.0          pair_1 = self.pair_wise_ass_2(self.actual_assignment)
+   224         1       1000.0   1000.0      0.0          self.pair_wise_1 = pair_1
+   225         1          0.0      0.0      0.0          if temp:
+   226                                                       objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,0)
+   227                                                   else:
+   228         1     343000.0 343000.0      0.0              objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,-1)
+   229                                                   
+   230         1       1000.0   1000.0      0.0          previous_objective = objective -1
+   231                                                   
+   232         1          0.0      0.0      0.0          iter_count = -1
+   233                                                   
+   234         6       6000.0   1000.0      0.0          for index, particle in enumerate(self.Particle_set):
+   235         5       5000.0   1000.0      0.0              self.moves_accepted[index].append(particle.assignment)
+   236         5       3000.0    600.0      0.0              self.moves_accepted_key[index].append("start")
+   237                                                       
+   238         5    2367000.0 473400.0      0.0              pair_2 = self.pair_wise_ass_2(particle.assignment)
+   239                                                       
+   240         5  419128000.0 8.38e+07      0.4              self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
+   241                                                   
+   242                                           
+   243         1       1000.0   1000.0      0.0          while previous_objective != objective and iter_count < 200:
+   244         1     110000.0 110000.0      0.0              print('Iter Count: '+str(iter_count))
+   245         1          0.0      0.0      0.0              iter_count += 1
+   246                                                       
+   247         1          0.0      0.0      0.0              previous_objective = objective
+   248         1       2000.0   2000.0      0.0              self.potentials = []
+   249                                                       
+   250                                                       #Loop over particle set
+   251         3       3000.0   1000.0      0.0              for index, particle in enumerate(self.Particle_set):
+   252         3      32000.0  10666.7      0.0                  self.potentials = []
+   253                                                           #For each particle generate a hash
+   254         3    1559000.0 519666.7      0.0                  hash_key = tuple(self.pair_wise_ass_2(particle.assignment))
+   255         3     247000.0  82333.3      0.0                  print('Len of potentials: '+str(len(self.potentials)))
+   256         3       1000.0    333.3      0.0                  if zeal==1:
+   257         7       4000.0    571.4      0.0                      for c in range(particle.K):
+   258         5     5.76e+10 1.15e+10     56.4                          self.zelous_moves(particle,c)
+   259         2          0.0      0.0      0.0                  if zeal == 2 and iter_count%3:
+   260                                                               for c in range(particle.K):
+   261                                                                   self.zelous_moves(particle,c)
+   262         2     220000.0 110000.0      0.0                  print('Len of potentials: '+str(len(self.potentials)))
+   263         2  447217000.0 2.24e+08      0.4                  self.local_moves(particle)
+   264         2     212000.0 106000.0      0.0                  print('Len of potentials: '+str(len(self.potentials)))
+   265         2       1000.0    500.0      0.0                  if global_m == 1:
+   266         2 6947140000.0 3.47e+09      6.8                      self.global_moves(particle)
+   267         2     203000.0 101500.0      0.0                  print('Len of potentials: '+str(len(self.potentials)))
+   268                                                           
+   269         2       2000.0   1000.0      0.0                  if iter_count%3 == 0 and (zeal == 1 or zeal==2):
+   270                                                               
+   271         2     3.18e+10 1.59e+10     31.1                      self.potentials.append((np.array(self.zealous_start(particle)),'zl'))
+   272         2     213000.0 106500.0      0.0                  print('Len of potentials: '+str(len(self.potentials)))
+   273         2       2000.0   1000.0      0.0                  assert len(self.potentials) > 0, "Proposals is empty, critical failure."
+   274                                           
+   275         2   56581000.0 2.83e+07      0.1                  pairwise_assignment_hashes = [tuple(self.pair_wise_ass_2(p[0])) for p in self.potentials]
+   276         2      63000.0  31500.0      0.0                  print('Done with Pairwise')
+   277       122      35000.0    286.9      0.0                  for i in pairwise_assignment_hashes:
+   278       120   10372000.0  86433.3      0.0                      if i in self.visited.keys():
+   279        74   15445000.0 208716.2      0.0                          self.visited[i] += 1
+   280                                                               else:
+   281        46    2595000.0  56413.0      0.0                          self.visited[i] = 1
+   282                                                           
+   283         2     702000.0 351000.0      0.0                  self.potentials = [p for i,p in enumerate(self.potentials) if pairwise_assignment_hashes[i] != hash_key]
+   284         2      86000.0  43000.0      0.0                  print(len(self.potentials))
+   285         2       1000.0    500.0      0.0                  if temp:
+   286                                                               objective = self.max_finder(index,particle,pairwise_assignment_hashes,objective,iter_count) 
+   287                                                           else:
+   288         2 4815479000.0 2.41e+09      4.7                      objective = self.max_finder(index,particle,pairwise_assignment_hashes,objective)
+   289                                                       #for index,particle in enumerate(self.lambda_Particle_set):
+   290                                                       minimum = optimize.minimize(self.lambda_objective, self.lambda_,bounds=[(0, None)])
+   291                                                       self.lambda_ = minimum['x'][0]
+   292                                                       #reinstantiate particles (CHANGE DICTONARY TO INVOLVE LAMBDA SO AS TO NOT BREAK THINGS)
+   293                                                       for index, particle in enumerate(self.Particle_set):
+   294                                                           self.Particle_set[index] = Particle(np.array(self.zealous_start(particle)),self.Y,self.X,self.W,k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+   295                                                           self.Particle_set[index].calculate_likelihood_given_clustering(list(range(1+int(max(self.Particle_set[index].assignment)))),[0],self.lambda_)
+   296                                                           self.Particle_set[index].pairwise_assignment()
+   297                                                           self.Particle_set[index].point_estimate_theta_and_theta_k()
+   298                                                           self.likelihood_dict[self.Particle_set[index].pairwise_matrix_assignment_hash] = (self.Particle_set[index].likelihood,self.Particle_set[index].calculate_prior())
+   299                                                   save_obj = objective
+   300                                                   self.iter_count = iter_count
+   301                                                   self.last_islands(particle,objective)
+   302                                                   self.last_zeal(objective)
+   303                                                   if save_obj != objective:
+   304                                                       print('Change')
+   305                                                       self.optimise_PARTOPT(temp,zeal)
+   306                                                   return
+
+Total time: 4.14233 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Partition_Searcher.py
+Function: Partition_Searcher.potential_check at line 420
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   420                                               def potential_check(self,i,p,pairwise_assignment_hashes,index,particle,iter_count):
+   421                                                   # #If the likelihood has been calculated before
+   422                                                   # start_1 = time.time()
+   423                                                   # if pairwise_assignment_hashes[i] in likelihood_dict:
+   424                                                       
+   425                                                   #     start_1 = time.time()
+   426                                                   #     #The likelihoods are the whole particle sets likelihoods
+   427                                                   #     likelihoods = np.array([j.likelihood+j.calculate_prior() for j in Particle_set])
+   428                                                       
+   429                                                   #     #Change current particles likelihood to potential's likelihood
+   430                                                   #     likelihoods[index] = likelihood_dict[pairwise_assignment_hashes[i]][0]+likelihood_dict[pairwise_assignment_hashes[i]][1]
+   431                                                   #     #Create a temp particle and compute needed values
+   432                                                   #     temp_particle = Particle(p,particle.y,particle.X,particle.W,k_0=particle.k_0,mu=particle.mu,nu=particle.nu,rho=0.9,prior_alpha = particle.prior_alpha,prior_theta = particle.prior_theta,lambda_=particle.lambda_)
+   433                                                   #     temp_particle.likelihood = likelihood_dict[pairwise_assignment_hashes[i]][0]
+   434                                                   #     temp_particle.pairwise_assignment()
+   435                                                   #     #Create the a temp particle set and weights
+   436                                                   #     temp_set = Particle_set[:index]+[temp_particle]+Particle_set[index+1:]
+   437                                                   #     temp_w = update_weights(temp_set, mu)
+   438                                                   
+   439                                                   # #If this is is a new clustering
+   440                                                   # else:
+   441       110     109000.0    990.9      0.0          start_2 = time.time()
+   442                                                   #Find what clusters have changed from the particle to the new potential
+   443       110      40000.0    363.6      0.0          changed = []
+   444                                           
+   445     21670    8488000.0    391.7      0.2          for i in zip(particle.assignment,p):
+   446     21560    7177000.0    332.9      0.2              if i[0]!=i[1]:
+   447      2930     957000.0    326.6      0.0                  changed.append(i[0])
+   448      2930     880000.0    300.3      0.0                  changed.append(i[1])
+   449       110    3349000.0  30445.5      0.1          changed = list(np.unique(changed))
+   450       110    2920000.0  26545.5      0.1          changed = [change for change in changed if change <= max(p)]
+   451                                                   
+   452                                                   #Create a temp particle
+   453       110  392946000.0 3.57e+06      9.5          temp_particle = Particle(p,particle.y,particle.X,particle.W,k_0=particle.k_0,mu=particle.mu,nu=particle.nu,rho=0.9,prior_alpha = particle.prior_alpha,prior_theta = particle.prior_theta,lambda_=particle.lambda_)
+   454                                                   
+   455                                                   #Calculate the likelihood and inherit the particle terms from before
+   456       110 3474001000.0 3.16e+07     83.9          temp_particle.calculate_likelihood_given_clustering(changed,particle.terms,particle.lambda_)
+   457       110   69090000.0 628090.9      1.7          temp_particle.pairwise_assignment()
+   458                                           
+   459                                                   
+   460                                                   
+   461                                                   #Add to the dictionary of calculated likelihoods
+   462       110    8737000.0  79427.3      0.2          self.likelihood_dict[temp_particle.pairwise_matrix_assignment_hash] = [temp_particle.likelihood,temp_particle.calculate_prior()]
+   463                                                   
+   464                                                   #Create temp particle set and likelihoods and weights
+   465       110     122000.0   1109.1      0.0          temp_set = self.Particle_set[:index]+[temp_particle]+self.Particle_set[index+1:]
+   466       110   36183000.0 328936.4      0.9          likelihoods = np.array([j.likelihood+j.calculate_prior() for j in temp_set])
+   467       110   90430000.0 822090.9      2.2          temp_w = self.update_weights(temp_set)
+   468                                                   
+   469                                                   #Calculate temp entropy and then objective
+   470       110   46705000.0 424590.9      1.1          temp_objective = self.objective(temp_w, self.weight_entropy(temp_w),temp_set,iter_count)
+   471                                                   #print("CHECK TIME: "+str(time.time()-start))
+   472       110     193000.0   1754.5      0.0          return temp_objective
+
+Total time: 4.81538 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Partition_Searcher.py
+Function: Partition_Searcher.max_finder at line 474
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   474                                               def max_finder(self,index,particle,pairwise_assignment_hashes,objective,iter_count=-1):
+   475         2       2000.0   1000.0      0.0          objectives = []
+   476       112     101000.0    901.8      0.0          for i,p in enumerate(self.potentials):
+   477       110 4151414000.0 3.77e+07     86.2              objectives.append((p[0],self.potential_check(i,p[0],pairwise_assignment_hashes,index,particle,iter_count)))
+   478                                                   
+   479         2      59000.0  29500.0      0.0          max_objectives = max(zip(range(len(objectives)),objectives), key=lambda item: item[1][1])
+   480                                                   
+   481                                                   #Loop over potentials
+   482         2      48000.0  24000.0      0.0          max_objectives = max(zip(range(len(objectives)),objectives), key=lambda item: item[1][1])
+   483                                                   
+   484         2          0.0      0.0      0.0          max_objective = max_objectives[1][1]
+   485         2       1000.0    500.0      0.0          max_potential = max_objectives[1][0]
+   486         2       1000.0    500.0      0.0          index_of_max = max_objectives[0]
+   487                                                   # #After finding the max potenetial check if it actually improves on the objective
+   488         2       1000.0    500.0      0.0          if max_objective > objective:
+   489         2    3607000.0  1.8e+06      0.1              self.moves_accepted[index].append(str(self.potentials[index_of_max][0]))
+   490         2       2000.0   1000.0      0.0              self.moves_accepted_key[index].append(str(self.potentials[index_of_max][1]))
+   491         2     247000.0 123500.0      0.0              print(str(self.potentials[index_of_max][1]))
+   492                                                       
+   493         2    1703000.0 851500.0      0.0              pair_2 = self.pair_wise_ass_2(max_potential)
+   494         2  172110000.0 8.61e+07      3.6              self.moves_rand[index].append(self.rand(pair_2)/comb(self.n,2))
+   495         2    6707000.0 3.35e+06      0.1              self.Particle_set[index] = Particle(max_potential,self.Y,self.X,self.W,k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+   496         2   56441000.0 2.82e+07      1.2              self.Particle_set[index].calculate_likelihood_given_clustering(list(range(self.Particle_set[index].K)),[0],self.lambda_)
+   497         2  418501000.0 2.09e+08      8.7              self.Particle_set[index].point_estimate_theta_and_theta_k()
+   498         2    1052000.0 526000.0      0.0              self.Particle_set[index].pairwise_assignment()
+   499                                                       
+   500                                           
+   501         2    2104000.0 1.05e+06      0.0              self.w = self.update_weights(self.Particle_set)
+   502         2    1272000.0 636000.0      0.0              objective = self.objective(self.w, self.weight_entropy(self.w),self.Particle_set,iter_count)
+   503                                           
+   504         2       4000.0   2000.0      0.0          return objective
+
+Total time: 0 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Partition_Searcher.py
+Function: Partition_Searcher.last_zeal at line 527
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   527                                               def last_zeal(self,objective):
+   528                                                   print('LAST ZEAL')
+   529                                                   self.potentials = []
+   530                                                   for index, particle in enumerate(self.Particle_set):
+   531                                                       for c in range(particle.K):
+   532                                                           self.zelous_moves(particle, c)
+   533                                                       self.potentials.append((np.array(self.zealous_start(particle)),'zl'))
+   534                                                       pairwise_assignment_hashes = [tuple(self.pair_wise_ass_2(p[0])) for p in self.potentials]
+   535                                                       #if n<=450 and len(potentials)<750:
+   536                                                       objective = self.max_finder(index, particle, pairwise_assignment_hashes, objective)
+   537                                                   return
+
+Total time: 57.5438 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Partition_Searcher.py
+Function: Partition_Searcher.zelous_moves at line 733
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   733                                               def zelous_moves(self,particle,cluster):
+   734        10    1783000.0 178300.0      0.0          with open("intermediate.csv", "a") as fp:
+   735         5      16000.0   3200.0      0.0              wr = csv.writer(fp, dialect='excel')
+   736         5      13000.0   2600.0      0.0              wr.writerow('\n')
+   737         5       4000.0    800.0      0.0              wr.writerow('\n')
+   738         5       5000.0   1000.0      0.0              wr.writerow('\n')
+   739         5      95000.0  19000.0      0.0          indicies = [i for i,x in enumerate(particle.assignment) if x == cluster]
+   740         5      78000.0  15600.0      0.0          not_indicies = [i for i,x in enumerate(particle.assignment) if x != cluster]
+   741         5       3000.0    600.0      0.0          if len(indicies)<= 1:
+   742                                                       return
+   743                                                   #Generate random start
+   744         5     224000.0  44800.0      0.0          random_start = np.random.choice(indicies)
+   745                                                   #Initilaise queue with neighbours
+   746         5   16258000.0 3.25e+06      0.0          W_mat = nx.adjacency_matrix(self.W).toarray()
+   747         5      74000.0  14800.0      0.0          Q = list(set(np.nonzero(W_mat[:,random_start])[0].tolist())-set(not_indicies))+indicies
+   748                                                   #Visited = queue.copy()
+   749         5       2000.0    400.0      0.0          V = not_indicies+[random_start]
+   750                                                   #Assign first element to cluster 0
+   751         5      38000.0   7600.0      0.0          assignment = particle.assignment[not_indicies+[random_start]].tolist()
+   752         5       4000.0    800.0      0.0          order = not_indicies+[random_start]
+   753                                           
+   754      1740     823000.0    473.0      0.0          while len(Q) > 0:
+   755      1736     573000.0    330.1      0.0              index = Q[0]
+   756      1736    1696000.0    977.0      0.0              Q = Q[1:]
+   757                                           
+   758      1736    3299000.0   1900.3      0.0              if index in V:
+   759      1249     330000.0    264.2      0.0                  continue
+   760       487     261000.0    535.9      0.0              V.append(index)
+   761       487    5288000.0  10858.3      0.0              neighbours = np.nonzero(W_mat[:,index])[0].tolist()
+   762       487    3233000.0   6638.6      0.0              Q = list(set(neighbours)-set(V))+Q
+   763                                                       #
+   764                                                       #Q = list(set(Q))
+   765       487     551000.0   1131.4      0.0              temp_assignments = []
+   766       487     941000.0   1932.2      0.0              temp_particle_set = []
+   767       487     562000.0   1154.0      0.0              order = order+[index]
+   768      2922    1244000.0    425.7      0.0              for p in self.Particle_set:
+   769      2435     869000.0    356.9      0.0                  if p == particle:
+   770      2043     614000.0    300.5      0.0                      continue
+   771                                                           else:
+   772       392    3657000.0   9329.1      0.0                      temp_parts_a = p.assignment[order]
+   773                                                               
+   774       392   11192000.0  28551.0      0.0                      uniques = np.unique(temp_parts_a).tolist()
+   775       392    1165000.0   2971.9      0.0                      keys = dict(zip(uniques, range(len(uniques))))
+   776       392    8339000.0  21273.0      0.0                      temp_parts_a = np.array([keys[i] for i in temp_parts_a])
+   777       392 3800661000.0  9.7e+06      6.6                      temp_parts = Particle(temp_parts_a,self.Y[order],self.X[order],self.W.subgraph(order),k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+   778       392 7285300000.0 1.86e+07     12.7                      temp_parts.calculate_likelihood_given_clustering(list(range(temp_parts.K)),[0],self.lambda_)
+   779       392  120528000.0 307469.4      0.2                      temp_parts.pairwise_assignment()
+   780       392     248000.0    632.7      0.0                      temp_particle_set.append(temp_parts)
+   781      4061    3692000.0    909.1      0.0              for j in range(0,max(assignment)+2):
+   782      3575   37416000.0  10466.0      0.1                  indicies = [i[1] for i in zip(assignment,order) if i[0]==j]
+   783                                                           
+   784      3575   26932000.0   7533.4      0.0                  if sum(W_mat[:,index][indicies]) >= 1 or j == max(assignment)+1:
+   785      1306   13450000.0  10298.6      0.0                      temp_assign = np.array(assignment.copy()+[j])
+   786      1306   35659000.0  27304.0      0.1                      uniques = np.unique(temp_assign).tolist()
+   787      1306    3266000.0   2500.8      0.0                      keys = dict(zip(uniques, range(len(uniques))))
+   788      1306   28715000.0  21987.0      0.0                      temp_assign = np.array([keys[i] for i in temp_assign])
+   789      1306     1.41e+10 1.08e+07     24.5                      temp_particle = Particle(temp_assign,self.Y[order],self.X[order],self.W.subgraph(order),k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+   790      1306     3.06e+10 2.35e+07     53.2                      temp_particle.calculate_likelihood_given_clustering(list(range(temp_particle.K)),[0],self.lambda_)
+   791      1305  464919000.0 356259.8      0.8                      temp_particle.pairwise_assignment()
+   792                                           
+   793      1305  344981000.0 264353.3      0.6                      temp_weights = self.update_weights(temp_particle_set+[temp_particle])
+   794      1305  434271000.0 332774.7      0.8                      obj_temp = self.objective(temp_weights, self.weight_entropy(temp_weights),temp_particle_set+[temp_particle],-1)
+   795      1305     882000.0    675.9      0.0                      temp_assignments.append((obj_temp,temp_assign))
+   796       486    5348000.0  11004.1      0.0              assignment = list(max(temp_assignments, key=lambda item: item[0])[1])
+   797       972  118335000.0 121743.8      0.2              with open("intermediate.csv", "a") as fp:
+   798       486   21498000.0  44234.6      0.0                  wr = csv.writer(fp, dialect='excel')
+   799       486    8454000.0  17395.1      0.0                  wr.writerow(assignment)
+   800       486    7112000.0  14633.7      0.0                  wr.writerow(order)
+   801                                                       
+   802                                           
+   803         4     425000.0 106250.0      0.0          assignment = [i[0] for i in sorted(zip(assignment, order), key=lambda x:x[1])]
+   804                                           
+   805         4      57000.0  14250.0      0.0          self.potentials.append((np.array(assignment),'z'))
+   806         4      18000.0   4500.0      0.0          return #print(assignment)
+
+Total time: 31.7472 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Partition_Searcher.py
+Function: Partition_Searcher.zealous_start at line 808
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   808                                               def zealous_start(self,particle):
+   809         4    1514000.0 378500.0      0.0          with open("intermediate.csv", "a") as fp:
+   810         2       8000.0   4000.0      0.0              wr = csv.writer(fp, dialect='excel')
+   811         2       7000.0   3500.0      0.0              wr.writerow('\n')
+   812         2          0.0      0.0      0.0              wr.writerow('\n')
+   813         2       2000.0   1000.0      0.0              wr.writerow('\n')
+   814                                                   #Generate random start
+   815         2      88000.0  44000.0      0.0          random_start = np.random.choice(self.n)
+   816                                                   #Initilaise queue with neighbours
+   817         2    6274000.0 3.14e+06      0.0          W_mat = nx.adjacency_matrix(self.W).toarray()
+   818         2      16000.0   8000.0      0.0          Q = np.nonzero(W_mat[:,random_start])[0].tolist()
+   819                                                   #Visited = queue.copy()
+   820         2       2000.0   1000.0      0.0          V = [random_start]
+   821                                                   #Assign first element to cluster 0
+   822         2          0.0      0.0      0.0          assignment = [0]
+   823         2       2000.0   1000.0      0.0          order = [random_start]
+   824                                                   #while queue is not empty:
+   825      1406     703000.0    500.0      0.0          while len(Q) > 0:
+   826      1404     573000.0    408.1      0.0              index = Q[0]
+   827      1404    1238000.0    881.8      0.0              Q = Q[1:]
+   828      1404    2082000.0   1482.9      0.0              if index in V:
+   829      1014     364000.0    359.0      0.0                  continue
+   830       390     173000.0    443.6      0.0              V.append(index)
+   831       390    4297000.0  11017.9      0.0              neighbours = np.nonzero(W_mat[:,index])[0].tolist()
+   832       390    1968000.0   5046.2      0.0              Q = Q+list(set(neighbours)-set(V))
+   833                                                       #Q = list(set(Q))
+   834       390     519000.0   1330.8      0.0              temp_assignments = []
+   835       390     146000.0    374.4      0.0              temp_particle_set = []
+   836       390     372000.0    953.8      0.0              order = order+[index]
+   837      2340     916000.0    391.5      0.0              for p in self.Particle_set:
+   838      1950     662000.0    339.5      0.0                  if p == particle:
+   839      1755     531000.0    302.6      0.0                      continue
+   840                                                           else:
+   841       195    1636000.0   8389.7      0.0                      temp_parts_a = p.assignment[order]
+   842                                                               
+   843       195    5252000.0  26933.3      0.0                      uniques = np.unique(temp_parts_a).tolist()
+   844       195     570000.0   2923.1      0.0                      keys = dict(zip(uniques, range(len(uniques))))
+   845       195    3506000.0  17979.5      0.0                      temp_parts_a = np.array([keys[i] for i in temp_parts_a])
+   846       195 1659592000.0 8.51e+06      5.2                      temp_parts = Particle(temp_parts_a,self.Y[order],self.X[order],self.W.subgraph(order),k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+   847       195 2699737000.0 1.38e+07      8.5                      temp_parts.calculate_likelihood_given_clustering(list(range(temp_parts.K)),[0],self.lambda_)
+   848       195   50548000.0 259220.5      0.2                      temp_parts.pairwise_assignment()
+   849       195     111000.0    569.2      0.0                      temp_particle_set.append(temp_parts)
+   850      4622    2930000.0    633.9      0.0              for j in range(0,max(assignment)+2):
+   851      4232   39964000.0   9443.3      0.1                  indicies = [i[1] for i in zip(assignment,order) if i[0]==j]
+   852                                                           
+   853      4232   27185000.0   6423.7      0.1                  if sum(W_mat[:,index][indicies]) >= 1 or j == max(assignment)+1:
+   854      1097    9024000.0   8226.1      0.0                      temp_assign = np.array(assignment.copy()+[j])
+   855      1097   29199000.0  26617.1      0.1                      uniques = np.unique(temp_assign).tolist()
+   856      1097    3135000.0   2857.8      0.0                      keys = dict(zip(uniques, range(len(uniques))))
+   857      1097   19280000.0  17575.2      0.1                      temp_assign = np.array([keys[i] for i in temp_assign])
+   858      1097 9578593000.0 8.73e+06     30.2                      temp_particle = Particle(temp_assign,self.Y[order],self.X[order],self.W.subgraph(order),k_0=self.k_0,mu=self.alpha,nu=self.beta,rho=self.rho,prior_alpha = self.prior_alpha,prior_theta = self.prior_theta,lambda_=self.lambda_)
+   859      1097     1.66e+10 1.52e+07     52.4                      temp_particle.calculate_likelihood_given_clustering(list(range(temp_particle.K)),[0],self.lambda_)
+   860      1097  307891000.0 280666.4      1.0                      temp_particle.pairwise_assignment()
+   861                                           
+   862      1097  227426000.0 207316.3      0.7                      temp_weights = self.update_weights(temp_particle_set+[temp_particle])
+   863      1097  342343000.0 312072.0      1.1                      obj_temp = self.objective(temp_weights, self.weight_entropy(temp_weights),temp_particle_set+[temp_particle],-1)
+   864      1097     652000.0    594.3      0.0                      temp_assignments.append((obj_temp,temp_assign))
+   865       390    3787000.0   9710.3      0.0              assignment = list(max(temp_assignments, key=lambda item: item[0])[1])
+   866       780   71844000.0  92107.7      0.2              with open("intermediate.csv", "a") as fp:
+   867       390    6953000.0  17828.2      0.0                  wr = csv.writer(fp, dialect='excel')
+   868       390    5583000.0  14315.4      0.0                  wr.writerow(assignment)
+   869       390    4535000.0  11628.2      0.0                  wr.writerow(order)
+   870                                                       
+   871                                                   #for j in 0 to max(assignment)+1
+   872                                                   #Find indicies of cluster
+   873                                                   #See if connected
+   874                                                   #Define particles of potential
+   875                                                   #Calculate potential
+   876                                                   #choose best
+   877                                                   #add neighbours such that not in visited
+   878         2     248000.0 124000.0      0.0          assignment = [i[0] for i in sorted(zip(assignment, order), key=lambda x:x[1])]
+   879         2       8000.0   4000.0      0.0          return assignment
+
+Total time: 60.8538 s
+File: /Users/andrew/PARTOPT_plus/src/partopt_plus/Particle_MCAR.py
+Function: Particle_MCAR.calculate_likelihood_given_clustering at line 225
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   225                                               def calculate_likelihood_given_clustering(self,changed_clusters,previous_likes,lambda_):
+   226                                                   '''
+   227                                                   Procedure for calculating the log likelihood.  Does not return but updates particle 
+   228                                                   properties with both the log likelihood and the individual cluster terms involved in
+   229                                                   the calculation for future use.
+   230                                           
+   231                                                   Parameters
+   232                                                   ----------
+   233                                                   changed_clusters : LIST
+   234                                                       List of clusters that need to be computed since they have changed.  Otherwise the
+   235                                                       values from previous_likes will be used to pluggin.
+   236                                                   previous_likes : LIST OF TUPLES
+   237                                                       List of tuples whose first elements are the determinant term for each cluster and the
+   238                                                       second elements are the quadratic terms for each cluster.
+   239                                                   lambda_ : FLOAT
+   240                                                       Lambda value for current iteration.
+   241                                           
+   242                                                   Returns
+   243                                                   -------
+   244                                                   None.
+   245                                           
+   246                                                   '''
+   247      3114    3413000.0   1096.0      0.0          start = time.time()
+   248      3114    1037000.0    333.0      0.0          determinant = 0
+   249      3114     888000.0    285.2      0.0          quad = 0
+   250      3114    1007000.0    323.4      0.0          det_terms = []
+   251      3114    1035000.0    332.4      0.0          quad_terms = []
+   252     30045   11975000.0    398.6      0.0          for cluster in changed_clusters:
+   253     26932  332417000.0  12342.8      0.5              indicies = [i for i, x in enumerate(self.assignment) if x == cluster]
+   254     26932  424993000.0  15780.2      0.7              X_k = self.X[indicies,:]
+   255     26932     1.72e+10 636850.2     28.2              B_k,B_k_inv,_ = self.gen_B(indicies)
+   256     26931  121999000.0   4530.1      0.2              Y_k = self.y[indicies].reshape(self.m*len(indicies))
+   257     26931     2.09e+10 774352.9     34.3              det_term = self.compute_det(X_k,B_k,lambda_)
+   258                                                       #quad_term = self.quad_term(Y_k,X_k,B_k,lambda_)
+   259     26931     2.18e+10 810618.1     35.9              quad_term = self.quad_term_2(Y_k,X_k,B_k_inv,lambda_)
+   260                                                       #print('Quad term diff: '+str(quad_term-quad_term_2))
+   261     26931   11195000.0    415.7      0.0              det_terms.append(det_term)
+   262     26931    9185000.0    341.1      0.0              quad_terms.append(quad_term)
+   263     26931   12616000.0    468.5      0.0              determinant+=det_term
+   264     26931   10661000.0    395.9      0.0              quad+=quad_term
+   265                                                       
+   266                                                   
+   267      3113    8788000.0   2823.0      0.0          changed_terms = list(zip(changed_clusters,list(zip(det_terms,quad_terms))))
+   268                                                   
+   269      3113    8592000.0   2760.0      0.0          unchanged = list(set(range(self.K))-set(changed_clusters))
+   270      3113    1645000.0    528.4      0.0          unchanged_likes = [previous_likes[i] for i in unchanged]
+   271      3205    1284000.0    400.6      0.0          for like in unchanged_likes:
+   272        92      36000.0    391.3      0.0              determinant += like[0]
+   273        92      40000.0    434.8      0.0              quad += like[1]
+   274      3113    3113000.0   1000.0      0.0          unchanged_terms = list(zip(unchanged,unchanged_likes))
+   275                                                   
+   276      3113    1582000.0    508.2      0.0          terms = changed_terms+unchanged_terms
+   277      3113    4450000.0   1429.5      0.0          terms.sort()
+   278      3113    2788000.0    895.6      0.0          terms = [t[1] for t in terms]
+   279                                                   #print("Quad: "+str(quad))
+   280                                                   #print("Transformed Quad: "+str(-0.5*(self.n_obs*self.m+2*self.mu)*np.log((1+quad/(2*self.nu)))))
+   281                                                   #print("Det: "+str(-0.5*(determinant)))
+   282                                                   # print("n: "+str(self.n_obs))
+   283                                                   # print("m: "+str(self.m))
+   284                                                   # print("mu: "+str(self.mu))
+   285                                                   # print("nu: "+str(self.nu))
+   286                                                   #input()
+   287      3113   32074000.0  10303.2      0.1          log_likelihood = -0.5*(determinant)-0.5*(self.n_obs*self.m+2*self.mu)*np.log((1+quad/(2*self.nu)))+sc.loggamma(self.mu+self.n_obs*self.m/2)-sc.loggamma(self.mu)-(self.n_obs*self.m/2)*(np.log(2*self.mu)+np.log(np.pi))
+   288                                                   
+   289                                                   #print("Determinant: "+str(determinant))
+   290                                                   #print("Quad: "+str(quad))
+   291                                                   #print("Second term: "+str(np.log((1+quad/(2*self.nu)))))
+   292                                                   #print("Constant: "+str(-0.5*(self.n_obs*self.m+2*self.mu)))
+   293                                                   #input()
+   294                                                   
+   295      3113    1370000.0    440.1      0.0          self.likelihood = log_likelihood
+   296                                                   
+   297      3113     938000.0    301.3      0.0          self.terms = terms
+   298                                                   #print("Time 1: "+str(time.time()-start))
+   299                                                   
+   300      3113    8131000.0   2611.9      0.0          return
+

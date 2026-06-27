@@ -16,24 +16,49 @@ from math import ceil
 from partopt_plus.Partition_Searcher import Partition_Searcher
 
 
+# Number of areal units (must be a square number for the grid setup)
 n = 196
 rs = np.sqrt(n).astype('int')
+
+# Number of covariates to cluster
 d = 4
+
+# Number of particles
 L = 5
-m = 25
+
+# Number of observations per area (is a constant value over all areas, 
+# code cannot handle different numbers of observations per area )
+m = 5
+
+# Spatial strength
 rho = 0.95
+
+# Tempering parameter (higher numbers force unique particles)
 mu = 1000
+
+# Hyper-prior values for EPPF of pitman-yorr
 prior_1 = 1
 prior_2 = 0.0
+
+# Separation between cluster means
 max_range = 10
+
+# Assignment used in the example (any number from 0 to 35)
 ass = 29
+
+# Variance of the gaussian likelihood
 tau = 0.5
+
+# 
 lambda_ = .5
 seed = 12345
 tau_prior_1 = 0.5
 tau_prior_2 = 0.5
 k_0 = 0.01
 
+######---------------######
+######DATA GENERATION######
+######---------------######
 
 def gen_X(n_obs,m,d,constant,zero,seed):
     prng = RandomState(seed)
@@ -76,17 +101,31 @@ for index,cluster in enumerate(range(max(assignment)+1)):
 
 Y = np.einsum('ik,ijk->ij', thetas, X)
 
-searcher = Partition_Searcher(assignment,
-                            Y,
-                            X,
-                            nx.from_numpy_array(W_mat),
+
+######---------------######
+######RUNNING PARTOPT+######
+######---------------######
+
+# Make a searcher object
+searcher = Partition_Searcher(assignment, #actual assignment (used for simulation tests can be np.zeros(n))
+                            Y, #response observations numpy array of shape (n,m)
+                            X, #covariate observations numpy array of shape (n,m,d)
+                            nx.from_numpy_array(W_mat), #Graph of adjacency matrix (must be fully connected)
                             L=L,
-                            Kmeans_initliaise=1,
+                            Kmeans_initliaise=1, #Initialise with k-means
                             mu =mu,
                             lambda_=lambda_,
                             k_min = 2,k_max = 4,
                             k_0=k_0,rho=rho,
                             alpha=tau_prior_1,beta=tau_prior_2
-                            ,prior_alpha=prior_1,prior_theta=prior_2,z_start=0)
+                            ,prior_alpha=prior_1,prior_theta=prior_2,
+                            z_start=0 #initialise with destroy/repair moves
+                            )
+# Create the particle set according to initialisation choice
 searcher.instantiate_set()
-objective = searcher.optimise_PARTOPT(zeal=1,global_m=1)
+
+# Find the optimal particle set.  both equal to 1 gives full neighbourhood.
+searcher.optimise_PARTOPT(zeal=1, global_m=1)
+
+
+

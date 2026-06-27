@@ -134,6 +134,27 @@ class Particle_MCAR(connected_Particle):
         
         return quad_term_value
     
+    def quad_term_2(self, Y, X, Binv, lambda_):
+        """
+        Computes
+            Y^T (I + lambda X B X^T)^(-1) Y
+        using the Woodbury identity.
+        """
+    
+        # Build the block-diagonal design matrix
+        Xblk = block_diag(*X)
+        
+        middle = Binv / lambda_ + Xblk.T @ Xblk
+    
+        rhs = Xblk.T @ Y
+    
+        z = linalg.solve(middle, rhs, assume_a="pos")
+    
+        quad_term_value = Y.T @ Y - rhs.T @ z
+
+        return quad_term_value
+    
+    
     def gen_B(self,indicies):
         '''
         
@@ -165,9 +186,15 @@ class Particle_MCAR(connected_Particle):
         #B = np.kron(B,np.eye(d)).astype("float32")
         row_sum = np.sum(Sigma_mat,axis=1)
         row_sum_sum = np.sum(row_sum)
-        B_inv = -(k_0/(1+k_0*row_sum_sum))*np.outer(row_sum,row_sum)
-        B_inv = Sigma_mat-B_inv
+        col_sum = np.sum(Sigma_mat,axis=0)
+        B_inv = -(np.power(k_0,-1)/(1+np.power(k_0,-1)*row_sum_sum))*(Sigma_mat@np.ones((n_k,n_k))@Sigma_mat)
+        B_inv = Sigma_mat+B_inv
         B_inv = np.kron(B_inv,np.eye(d))
+        
+        # B_inv = np.kron(Sigma_mat,np.eye(d))
+        # constant = 1+np.power(k_0,-1)*(one_B.T@B_inv@one_B)
+        # B_inv = B_inv - np.power(constant,-1)*(B_inv@one_B@one_B.T@B_inv)*(np.power(k_0,-1))
+
 
         return B,B_inv,np.kron((Sigma_mat),np.eye(self.dim_cov))
     
@@ -225,10 +252,12 @@ class Particle_MCAR(connected_Particle):
         for cluster in changed_clusters:
             indicies = [i for i, x in enumerate(self.assignment) if x == cluster]
             X_k = self.X[indicies,:]
-            B_k,_,_ = self.gen_B(indicies)
+            B_k,B_k_inv,_ = self.gen_B(indicies)
             Y_k = self.y[indicies].reshape(self.m*len(indicies))
             det_term = self.compute_det(X_k,B_k,lambda_)
-            quad_term = self.quad_term(Y_k,X_k,B_k,lambda_)
+            #quad_term = self.quad_term(Y_k,X_k,B_k,lambda_)
+            quad_term = self.quad_term_2(Y_k,X_k,B_k_inv,lambda_)
+            #print('Quad term diff: '+str(quad_term-quad_term_2))
             det_terms.append(det_term)
             quad_terms.append(quad_term)
             determinant+=det_term
