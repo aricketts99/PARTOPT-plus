@@ -11,7 +11,7 @@ import traceback
 from math import comb
 from collections import Counter
 import numpy as np
-from Particle_Poisson import Particle_Poisson as Particle
+from partopt_plus.Particle_Poisson import Particle_Poisson as Particle
 import networkx as nx
 from scipy import optimize
 from scipy.stats import invgamma,multivariate_normal,multivariate_t

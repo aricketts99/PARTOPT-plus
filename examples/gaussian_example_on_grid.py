@@ -99,7 +99,7 @@ for index,cluster in enumerate(range(max(assignment)+1)):
     Sigma = Sigma_mat(W_mat[indicies,:][:,indicies],rho)
     thetas[indicies] = prng.multivariate_normal(np.kron(np.ones((n_k,1)),np.eye(d))@theta_k,tau*lambda_*np.kron(Sigma,np.eye(d))).reshape(n_k,d)
 
-Y = np.einsum('ik,ijk->ij', thetas, X)
+Y = np.einsum('ik,ijk->ij', thetas, X) + np.random.normal(0,tau,size=(n,m))
 
 
 ######---------------######
